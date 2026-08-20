@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:12-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./db/data:/var/lib/postgresql/data"
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    restart: always
+    environment:
+      - SERVICES=s3,sqs
+      - DEF_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - DATA_DIR=/tmp/localstack/data
+    ports:
+      - "4566:4566"
+    volumes:
+      - "./localstack:/tmp/localstack"
+
+volumes:
+  db_data:
+  localstack_data:
