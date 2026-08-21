@@ -39,6 +39,10 @@ run:
 lint:
 	golangci-lint run ./...
 
+.PHONY: fix-lint
+fix-lint:
+	golangci-lint run --fix
+
 .PHONY: format
 format:
 	@gofmt -s -w .
