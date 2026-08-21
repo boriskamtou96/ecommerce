@@ -8,6 +8,7 @@ help:
 	@echo "  build              Build the application"
 	@echo "  run                Run the application"
 	@echo "  lint               Run golangci-lint on the codebase"
+	@echo "  format             Format code an re-arrange imports"
 
 # include .envrc
 MIGRATIONS_PATH = ./db/migrations
@@ -38,6 +39,11 @@ run:
 lint:
 	golangci-lint run ./...
 
+.PHONY: format
+format:
+	@gofmt -s -w .
+	@goimports -w .
+
 .PHONY: up
 up:
 	docker compose -f docker/docker-compose.yml up -d
@@ -45,3 +51,4 @@ up:
 .PHONY: down
 down:
 	docker compose -f docker/docker-compose.yml down
+

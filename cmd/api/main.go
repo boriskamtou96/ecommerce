@@ -17,6 +17,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	requestTimeOut = 10
+	cancelTimeout  = 15
+)
+
 func main() {
 	log := logger.New()
 
@@ -46,14 +51,15 @@ func main() {
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),
 		Handler:      router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  requestTimeOut * time.Second,
+		WriteTimeout: requestTimeOut * time.Second,
 	}
 
 	go func() {
 		log.Info().Str("port", cfg.Server.Port).Msg("Server running on")
-		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal().Err(err).Msg("failed to start server")
+		if listenServerErr := httpServer.ListenAndServe(); listenServerErr != nil &&
+			!errors.Is(listenServerErr, http.ErrServerClosed) {
+			log.Fatal().Err(listenServerErr).Msg("failed to start server")
 		}
 	}()
 
@@ -62,11 +68,12 @@ func main() {
 	<-quit
 
 	log.Info().Msg("shutting down server")
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cancelTimeout*time.Second)
 	defer cancel()
 
-	if err := httpServer.Shutdown(ctx); err != nil {
-		log.Fatal().Err(err).Msg("failed to shutdown http server")
+	if shutDownErr := httpServer.Shutdown(ctx); shutDownErr != nil {
+		log.Error().Err(shutDownErr).Msg("failed to shutdown http server")
+		return
 	}
 
 	log.Info().Msg("shutting down database")
