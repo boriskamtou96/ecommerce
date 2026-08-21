@@ -32,7 +32,7 @@ build:
 
 .PHONY: run
 run:
-	go run ./cmd/api
+	air
 
 .PHONY: lint
 lint:

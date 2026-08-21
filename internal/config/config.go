@@ -1,7 +1,7 @@
 package config
 
 import (
-	"ecommerce/utils"
+	"ecommerce/internal/utils"
 	"strconv"
 	"time"
 
