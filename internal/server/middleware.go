@@ -3,6 +3,7 @@ package server
 import (
 	"ecommerce/internal/models"
 	"ecommerce/internal/utils"
+	"errors"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -12,21 +13,21 @@ func (s *Server) authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			utils.UnauthorizedResponse(c, "you need to provide authorization")
+			utils.UnauthorizedResponse(c, "you need to provide authorization", errors.New("you need to provide authorization"))
 			c.Abort()
 			return
 		}
 
 		tokenParts := strings.Split(authHeader, " ")
 		if len(tokenParts) < 2 || tokenParts[0] != "Bearer" {
-			utils.UnauthorizedResponse(c, "invalid authorization header format")
+			utils.UnauthorizedResponse(c, "invalid authorization header format", errors.New("invalid authorization header format"))
 			c.Abort()
 			return
 		}
 
 		claims, err := utils.ValidateToken(tokenParts[1], s.config.JWT.Secret)
 		if err != nil {
-			utils.UnauthorizedResponse(c, "invalid token")
+			utils.UnauthorizedResponse(c, "invalid token", errors.New("invalid token"))
 			c.Abort()
 			return
 		}

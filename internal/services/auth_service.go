@@ -24,10 +24,10 @@ func NewAuthService(db *gorm.DB, config *config.Config) *AuthService {
 	}
 }
 
-func (s *AuthService) Register(req dtos.RegisterRequest) (*dtos.AuthResponse, error) {
+func (s *AuthService) Register(req *dtos.RegisterRequest) (*dtos.AuthResponse, error) {
 	var existingUser models.User
-	if err := s.db.Where("email = ?", req.Email).First(&existingUser).Error; err != nil {
-		return nil, errors.New("user not found")
+	if err := s.db.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
+		return nil, errors.New("you cannot register with this email")
 	}
 
 	hashedPassword, err := utils.HashPassword(req.Password)
@@ -44,7 +44,7 @@ func (s *AuthService) Register(req dtos.RegisterRequest) (*dtos.AuthResponse, er
 		Role:      models.UserRoleCustomer,
 	}
 
-	if err := s.db.Create(user).Error; err != nil {
+	if err := s.db.Create(&user).Error; err != nil {
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (s *AuthService) Register(req dtos.RegisterRequest) (*dtos.AuthResponse, er
 	return s.generateAuthResponse(&user)
 }
 
-func (s *AuthService) Login(req dtos.LoginRequest) (*dtos.AuthResponse, error) {
+func (s *AuthService) Login(req *dtos.LoginRequest) (*dtos.AuthResponse, error) {
 	var user models.User
 	if err := s.db.Where("email = ? AND is_active = ?", req.Email, true).First(&user).Error; err != nil {
 		return nil, errors.New("invalid credentials")
@@ -78,7 +78,9 @@ func (s *AuthService) RefreshToken(req *dtos.RefreshTokenRequest) (*dtos.AuthRes
 	}
 
 	var refreshToken models.RefreshToken
-	if err := s.db.Where("token = ? expires_at > ?", req.RefreshToken, time.Now()).First(&refreshToken).Error; err != nil {
+	if err := s.db.Where("token = ? AND expires_at > ?", req.RefreshToken, time.Now()).
+		First(&refreshToken).
+		Error; err != nil {
 		return nil, errors.New("refresh token not found or expired")
 	}
 
@@ -92,7 +94,7 @@ func (s *AuthService) RefreshToken(req *dtos.RefreshTokenRequest) (*dtos.AuthRes
 }
 
 func (s *AuthService) Logout(refreshToken string) error {
-	return s.db.Where("toke = ?", refreshToken).Delete(&models.RefreshToken{}).Error
+	return s.db.Where("token = ?", refreshToken).Delete(&models.RefreshToken{}).Error
 }
 
 func (s *AuthService) generateAuthResponse(user *models.User) (*dtos.AuthResponse, error) {
