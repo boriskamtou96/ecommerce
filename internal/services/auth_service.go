@@ -107,7 +107,7 @@ func (s *AuthService) generateAuthResponse(user *models.User) (*dtos.AuthRespons
 	if err != nil {
 		return nil, err
 	}
-
+ 
 	refreshTokenModel := models.RefreshToken{
 		UserID:    user.ID,
 		Token:     refreshToken,
