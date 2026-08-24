@@ -1,7 +1,6 @@
 package services
 
 import (
-	"ecommerce/internal/config"
 	"ecommerce/internal/dtos"
 	"ecommerce/internal/models"
 
@@ -9,8 +8,7 @@ import (
 )
 
 type UserService struct {
-	db  *gorm.DB
-	cfg *config.Config
+	db *gorm.DB
 }
 
 func NewUserService(db *gorm.DB) *UserService {

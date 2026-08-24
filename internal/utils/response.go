@@ -10,7 +10,7 @@ type Response struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Data    any    `json:"data"`
-	Error   string `json:"error"`
+	Error   string `json:"error,omitempty"`
 }
 
 type PaginatedResponse struct {
