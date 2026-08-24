@@ -8,7 +8,7 @@ type CreateCategoryRequest struct {
 type UpdateCategoryRequest struct {
 	Name        string `json:"name"        binding:"required"`
 	Description string `json:"description" binding:"required"`
-	IsActive    bool   `json:"is_active"`
+	IsActive    *bool  `json:"is_active"`
 }
 
 type CategoryResponse struct {
