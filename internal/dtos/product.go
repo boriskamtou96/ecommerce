@@ -38,7 +38,7 @@ type UpdateProductRequest struct {
 
 type ProductResponse struct {
 	ID          uint                   `json:"id"`
-	CategoryID  uint                   `json:"category_id"`
+	CategoryID  uint                   `json:"-"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	Price       float64                `json:"price"`

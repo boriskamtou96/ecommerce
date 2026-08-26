@@ -5,7 +5,9 @@ import (
 	"ecommerce/internal/config"
 	"ecommerce/internal/database"
 	"ecommerce/internal/logger"
+	"ecommerce/internal/providers"
 	"ecommerce/internal/server"
+	"ecommerce/internal/services"
 	"errors"
 	"fmt"
 	"net/http"
@@ -44,7 +46,12 @@ func main() {
 
 	gin.SetMode(cfg.Server.GinMode)
 
-	srv := server.New(db, cfg, log)
+	authService := services.NewAuthService(db, cfg)
+	productService := services.NewProductService(db)
+	userService := services.NewUserService(db)
+	uploadService := services.NewUploadService(providers.NewLocalUploadProvider(cfg.Upload.Path))
+
+	srv := server.New(db, cfg, log, authService, productService, userService, uploadService)
 
 	router := srv.SetupRoutes()
 

@@ -2,6 +2,7 @@ package server
 
 import (
 	"ecommerce/internal/config"
+	"ecommerce/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,16 +11,32 @@ import (
 )
 
 type Server struct {
-	db     *gorm.DB
-	config *config.Config
-	logger zerolog.Logger
+	db             *gorm.DB
+	config         *config.Config
+	logger         zerolog.Logger
+	authService    *services.AuthService
+	productService *services.ProductService
+	userService    *services.UserService
+	uploadService  *services.UploadService
 }
 
-func New(db *gorm.DB, config *config.Config, logger zerolog.Logger) *Server {
+func New(
+	db *gorm.DB,
+	config *config.Config,
+	logger zerolog.Logger,
+	authService *services.AuthService,
+	productService *services.ProductService,
+	userService *services.UserService,
+	uploadService *services.UploadService,
+) *Server {
 	return &Server{
-		db:     db,
-		config: config,
-		logger: logger,
+		db:             db,
+		config:         config,
+		logger:         logger,
+		authService:    authService,
+		productService: productService,
+		userService:    userService,
+		uploadService:  uploadService,
 	}
 }
 
@@ -60,6 +77,7 @@ func (s *Server) SetupRoutes() *gin.Engine {
 				products.POST("/", s.adminMiddleware(), s.createProduct)
 				products.PUT("/:id", s.adminMiddleware(), s.updateProduct)
 				products.DELETE("/:id", s.adminMiddleware(), s.deleteProduct)
+				products.POST("/:id/images", s.adminMiddleware(), s.uploadProductImage)
 			}
 
 			categories := protectedRoutes.Group("/categories")
@@ -76,19 +94,4 @@ func (s *Server) SetupRoutes() *gin.Engine {
 
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "Ok"})
-}
-
-func (s *Server) corsMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Methods", "Content-Type, Authorization")
-
-		if c.Request.Method == http.MethodOptions {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
-	}
 }
