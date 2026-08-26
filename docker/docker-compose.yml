@@ -19,11 +19,22 @@ services:
       - DEF_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
+      - LOCALSTACK_AUTH_TOKEN=ls-QizOkAma-teco-Ximu-7820-1472BOfo2e8e
       - DATA_DIR=/tmp/localstack/data
     ports:
       - "4566:4566"
     volumes:
-      - "./localstack:/tmp/localstack"
+      - "./init/aws/init-localstack.sh:/etc/localstack/init/ready.d/init.sh"
+
+  cdn:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ../uploads:/var/www/uploads
+    depends_on:
+      - localstack
 
 volumes:
   db_data:

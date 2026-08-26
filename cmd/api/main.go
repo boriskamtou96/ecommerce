@@ -4,6 +4,7 @@ import (
 	"context"
 	"ecommerce/internal/config"
 	"ecommerce/internal/database"
+	"ecommerce/internal/interfaces"
 	"ecommerce/internal/logger"
 	"ecommerce/internal/providers"
 	"ecommerce/internal/server"
@@ -49,7 +50,15 @@ func main() {
 	authService := services.NewAuthService(db, cfg)
 	productService := services.NewProductService(db)
 	userService := services.NewUserService(db)
-	uploadService := services.NewUploadService(providers.NewLocalUploadProvider(cfg.Upload.Path))
+
+	var uploadProvider interfaces.UploadProvider
+	if cfg.Upload.UploadProvider == "s3" {
+		uploadProvider = providers.NewS3Provider(cfg)
+	} else {
+		uploadProvider = providers.NewLocalUploadProvider(cfg.Upload.Path)
+	}
+
+	uploadService := services.NewUploadService(uploadProvider)
 
 	srv := server.New(db, cfg, log, authService, productService, userService, uploadService)
 
