@@ -10,6 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - "./db/data:/var/lib/postgresql/data"
+
+
   localstack:
     image: localstack/localstack:latest
     container_name: localstack

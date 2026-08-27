@@ -78,6 +78,7 @@ func (s *Server) SetupRoutes() *gin.Engine {
 				products.PUT("/:id", s.adminMiddleware(), s.updateProduct)
 				products.DELETE("/:id", s.adminMiddleware(), s.deleteProduct)
 				products.POST("/:id/images", s.adminMiddleware(), s.uploadProductImage)
+				products.DELETE("/:id/images/:imageId", s.adminMiddleware(), s.deleteProductImage)
 			}
 
 			categories := protectedRoutes.Group("/categories")

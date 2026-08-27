@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -14,6 +15,7 @@ type Config struct {
 	JWT      JWTConfig
 	AWS      AWSConfig
 	Upload   UploadConfig
+	CDN      CDNConfig
 }
 type ServerConfig struct {
 	Port    string
@@ -49,17 +51,25 @@ type UploadConfig struct {
 	UploadProvider string
 }
 
+// CDNConfig holds the public base URL that serves uploaded assets.
+// Only the storage key is persisted in the database; the public URL is
+// rebuilt on every response so that changing CDN host never requires a
+// data migration.
+type CDNConfig struct {
+	BaseURL string
+}
+
 func LoadConfig() (*Config, error) {
 	_ = godotenv.Load()
 
 	jwtExpiresIn, _ := time.ParseDuration(getEnv("JWT_EXPIRES_IN", "15m"))
-	jwtRefreshTokenExpiresIn, _ := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRES_IN", "7d"))
+	jwtRefreshTokenExpiresIn, _ := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRES_IN", "168h"))
 
 	maxFileSize, _ := strconv.ParseInt(getEnv("MAX_UPLOAD_SIZE", "10485760"), 10, 64)
 
 	config := &Config{
 		Server: ServerConfig{
-			Port:    getEnv("SERVER_PORT", "8080"),
+			Port:    getEnv("SERVER_PORT", getEnv("PORT", "8080")),
 			GinMode: getEnv("GIN_MODE", "debug"),
 		},
 		Database: DatabaseConfig{
@@ -86,6 +96,9 @@ func LoadConfig() (*Config, error) {
 			Path:           getEnv("UPLOAD_DIR", "./uploads"),
 			MaxFileSize:    maxFileSize,
 			UploadProvider: getEnv("UPLOAD_PROVIDER", "local"),
+		},
+		CDN: CDNConfig{
+			BaseURL: strings.TrimRight(getEnv("CDN_BASE_URL", "http://localhost:8081/uploads"), "/"),
 		},
 	}
 	return config, nil

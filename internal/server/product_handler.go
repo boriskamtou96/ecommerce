@@ -1,9 +1,12 @@
 package server
 
 import (
+	"errors"
+	"net/http"
 	"strconv"
 
 	"ecommerce/internal/dtos"
+	"ecommerce/internal/services"
 	"ecommerce/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -170,22 +173,75 @@ func (s *Server) uploadProductImage(c *gin.Context) {
 		return
 	}
 
+	if _, err = s.productService.GetProduct(uint(id)); err != nil {
+		utils.NotFoundResponse(c, "product not found", err)
+		return
+	}
+
 	file, err := c.FormFile("image")
 	if err != nil {
 		utils.BadRequestResponse(c, "No file uploaded", err)
 		return
 	}
 
-	url, err := s.uploadService.UploadProductImage(uint(id), file)
+	key, err := s.uploadService.UploadProductImage(c.Request.Context(), uint(id), file)
 	if err != nil {
-		utils.InternalServerErrorResponse(c, "Failed to upload image", err)
+		if errors.Is(err, services.ErrFileTooLarge) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
+				"success": false,
+				"message": "File too large",
+				"error":   err.Error(),
+			})
+			return
+		}
+		utils.BadRequestResponse(c, "Failed to upload image", err)
 		return
 	}
 
-	if err := s.productService.AddProductImage(uint(id), url, file.Filename); err != nil {
+	if err = s.productService.AddProductImage(uint(id), key, file.Filename); err != nil {
+		// Keep storage and database consistent: drop the orphan object.
+		if delErr := s.uploadService.DeleteFile(c.Request.Context(), key); delErr != nil {
+			s.logger.Error().Err(delErr).Str("key", key).Msg("failed to clean up orphaned upload")
+		}
 		utils.InternalServerErrorResponse(c, "Failed to save image record", err)
 		return
 	}
 
-	utils.SuccessResponse(c, "Image uploaded successfully", map[string]string{"url": url})
+	utils.CreatedResponse(c, "Image uploaded successfully", map[string]string{
+		"key": key,
+		"url": utils.CDNURL(s.config.CDN.BaseURL, key),
+	})
+}
+
+func (s *Server) deleteProductImage(c *gin.Context) {
+	productID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.BadRequestResponse(c, "Invalid product ID", err)
+		return
+	}
+
+	imageID, err := strconv.ParseUint(c.Param("imageId"), 10, 32)
+	if err != nil {
+		utils.BadRequestResponse(c, "Invalid image ID", err)
+		return
+	}
+
+	image, err := s.productService.GetProductImage(uint(productID), uint(imageID))
+	if err != nil {
+		utils.NotFoundResponse(c, "image not found", err)
+		return
+	}
+
+	if err = s.productService.DeleteProductImage(image); err != nil {
+		utils.InternalServerErrorResponse(c, "failed to delete image record", err)
+		return
+	}
+
+	// The row is gone, so a storage failure must not fail the request:
+	// log it and let a cleanup job pick up the leftover object.
+	if err = s.uploadService.DeleteFile(c.Request.Context(), image.URL); err != nil {
+		s.logger.Error().Err(err).Str("key", image.URL).Msg("failed to delete object from storage")
+	}
+
+	utils.SuccessResponse(c, "image deleted successfully", nil)
 }

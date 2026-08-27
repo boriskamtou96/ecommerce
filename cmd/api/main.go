@@ -48,21 +48,29 @@ func main() {
 	gin.SetMode(cfg.Server.GinMode)
 
 	authService := services.NewAuthService(db, cfg)
-	productService := services.NewProductService(db)
+	productService := services.NewProductService(db, cfg.CDN.BaseURL)
 	userService := services.NewUserService(db)
 
 	var uploadProvider interfaces.UploadProvider
 	if cfg.Upload.UploadProvider == "s3" {
-		uploadProvider = providers.NewS3Provider(cfg)
+		s3Provider, s3Err := providers.NewS3Provider(cfg)
+		if s3Err != nil {
+			log.Fatal().Err(s3Err).Msg("Failed to create S3 provider")
+		}
+		uploadProvider = s3Provider
 	} else {
 		uploadProvider = providers.NewLocalUploadProvider(cfg.Upload.Path)
 	}
 
-	uploadService := services.NewUploadService(uploadProvider)
+	uploadService := services.NewUploadService(uploadProvider, cfg.Upload.MaxFileSize)
 
 	srv := server.New(db, cfg, log, authService, productService, userService, uploadService)
 
 	router := srv.SetupRoutes()
+
+	// Cap what Gin buffers in memory for multipart requests; the per-file
+	// limit itself is enforced in the upload service.
+	router.MaxMultipartMemory = cfg.Upload.MaxFileSize
 
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),

@@ -14,6 +14,11 @@ import (
 	appconfig "ecommerce/internal/config"
 )
 
+// objectCacheControl is safe because every key is content addressed:
+// a new upload always produces a new key, so a cached object never
+// becomes stale.
+const objectCacheControl = "public, max-age=31536000, immutable"
+
 type S3Provider struct {
 	client   *s3.Client
 	uploader *manager.Uploader
@@ -21,7 +26,7 @@ type S3Provider struct {
 	endpoint string
 }
 
-func NewS3Provider(cfg *appconfig.Config) *S3Provider {
+func NewS3Provider(cfg *appconfig.Config) (*S3Provider, error) {
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(cfg.AWS.Region),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
@@ -30,14 +35,14 @@ func NewS3Provider(cfg *appconfig.Config) *S3Provider {
 			"",
 		)),
 	)
-
 	if err != nil {
-		panic("failed to create aws config" + err.Error())
+		return nil, err
 	}
 
-	// configure localstack
+	// A custom endpoint (LocalStack, MinIO) also implies path style
+	// addressing. Real AWS keeps the default virtual hosted style.
 	client := s3.NewFromConfig(awsCfg, func(options *s3.Options) {
-		if cfg.AWS.S3Bucket != "" {
+		if cfg.AWS.S3Endpoint != "" {
 			options.BaseEndpoint = aws.String(cfg.AWS.S3Endpoint)
 			options.UsePathStyle = true
 		}
@@ -48,22 +53,31 @@ func NewS3Provider(cfg *appconfig.Config) *S3Provider {
 		uploader: manager.NewUploader(client),
 		bucket:   cfg.AWS.S3Bucket,
 		endpoint: cfg.AWS.S3Endpoint,
-	}
+	}, nil
 }
 
-func (p *S3Provider) UploadFile(file *multipart.FileHeader, path string) (string, error) {
+func (p *S3Provider) UploadFile(
+	ctx context.Context,
+	file *multipart.FileHeader,
+	key, contentType string,
+) (string, error) {
 	src, err := file.Open()
 	if err != nil {
 		return "", err
 	}
 	defer src.Close()
 
-	result, err := p.uploader.Upload(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(p.bucket),
-		Key:    aws.String(path),
-		Body:   src,
-	})
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
 
+	result, err := p.uploader.Upload(ctx, &s3.PutObjectInput{
+		Bucket:       aws.String(p.bucket),
+		Key:          aws.String(key),
+		Body:         src,
+		ContentType:  aws.String(contentType),
+		CacheControl: aws.String(objectCacheControl),
+	})
 	if err != nil {
 		return "", err
 	}
@@ -71,10 +85,10 @@ func (p *S3Provider) UploadFile(file *multipart.FileHeader, path string) (string
 	return *result.Key, nil
 }
 
-func (p *S3Provider) DeleteFile(path string) error {
-	_, err := p.client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+func (p *S3Provider) DeleteFile(ctx context.Context, key string) error {
+	_, err := p.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(p.bucket),
-		Key:    aws.String(strings.TrimPrefix(path, "/")),
+		Key:    aws.String(strings.TrimPrefix(key, "/")),
 	})
 	return err
 }

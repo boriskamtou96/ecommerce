@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"ecommerce/internal/dtos"
 	"ecommerce/internal/models"
 	"ecommerce/internal/utils"
@@ -9,12 +11,14 @@ import (
 )
 
 type ProductService struct {
-	db *gorm.DB
+	db         *gorm.DB
+	cdnBaseURL string
 }
 
-func NewProductService(db *gorm.DB) *ProductService {
+func NewProductService(db *gorm.DB, cdnBaseURL string) *ProductService {
 	return &ProductService{
-		db: db,
+		db:         db,
+		cdnBaseURL: cdnBaseURL,
 	}
 }
 
@@ -40,7 +44,7 @@ func (s *ProductService) CreateCategory(
 
 func (s *ProductService) GetCategories() ([]dtos.CategoryResponse, error) {
 	var categories []models.Category
-	if err := s.db.Where("is_active = ?", true).First(&categories).Error; err != nil {
+	if err := s.db.Where("is_active = ?", true).Find(&categories).Error; err != nil {
 		return nil, err
 	}
 
@@ -160,7 +164,8 @@ func (s *ProductService) UpdateProduct(id uint, req *dtos.UpdateProductRequest) 
 	}
 
 	product.CategoryID = req.CategoryID
-	product.Name = req.Description
+	product.Name = req.Name
+	product.Description = req.Description
 	product.Price = req.Price
 	product.Stock = req.Stock
 	if req.IsActive != nil {
@@ -178,13 +183,15 @@ func (s *ProductService) DeleteProduct(id uint) error {
 	return s.db.Delete(&models.Product{}, id).Error
 }
 
-func (s *ProductService) AddProductImage(productID uint, url, altText string) error {
+// AddProductImage records the storage key (not the public URL) so the CDN
+// host can change without a data migration.
+func (s *ProductService) AddProductImage(productID uint, key, altText string) error {
 	var count int64
 	s.db.Model(&models.ProductImage{}).Where("product_id = ?", productID).Count(&count)
 
 	image := models.ProductImage{
 		ProductID: productID,
-		URL:       url,
+		URL:       key,
 		AltText:   altText,
 		IsPrimary: count == 0, // First image is primary
 	}
@@ -192,12 +199,46 @@ func (s *ProductService) AddProductImage(productID uint, url, altText string) er
 	return s.db.Create(&image).Error
 }
 
+func (s *ProductService) GetProductImage(productID, imageID uint) (*models.ProductImage, error) {
+	var image models.ProductImage
+	if err := s.db.Where("product_id = ? AND id = ?", productID, imageID).
+		First(&image).Error; err != nil {
+		return nil, err
+	}
+	return &image, nil
+}
+
+// DeleteProductImage removes the row and promotes another image to primary
+// when the deleted one was the primary.
+func (s *ProductService) DeleteProductImage(image *models.ProductImage) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Unscoped().Delete(&models.ProductImage{}, image.ID).Error; err != nil {
+			return err
+		}
+
+		if !image.IsPrimary {
+			return nil
+		}
+
+		var next models.ProductImage
+		err := tx.Where("product_id = ?", image.ProductID).Order("id asc").First(&next).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		return tx.Model(&next).Update("is_primary", true).Error
+	})
+}
+
 func (s *ProductService) convertToProductResponse(product *models.Product) dtos.ProductResponse {
 	images := make([]dtos.ProductImageResponse, len(product.Images))
 	for i := range product.Images {
 		images[i] = dtos.ProductImageResponse{
 			ID:        product.Images[i].ID,
-			URL:       product.Images[i].URL,
+			URL:       utils.CDNURL(s.cdnBaseURL, product.Images[i].URL),
 			AltText:   product.Images[i].AltText,
 			IsPrimary: product.Images[i].IsPrimary,
 		}

@@ -1,8 +1,15 @@
 package interfaces
 
-import "mime/multipart"
+import (
+	"context"
+	"mime/multipart"
+)
 
+// UploadProvider abstracts the object storage backing the CDN.
+// Implementations receive a storage key that is already sanitised by the
+// caller and the exact Content-Type to persist alongside the object, so
+// that the CDN never has to guess or rewrite it.
 type UploadProvider interface {
-	UploadFile(file *multipart.FileHeader, path string) (string, error)
-	DeleteFile(path string) error
+	UploadFile(ctx context.Context, file *multipart.FileHeader, key, contentType string) (string, error)
+	DeleteFile(ctx context.Context, key string) error
 }
