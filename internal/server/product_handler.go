@@ -198,7 +198,8 @@ func (s *Server) uploadProductImage(c *gin.Context) {
 		return
 	}
 
-	if err = s.productService.AddProductImage(uint(id), key, file.Filename); err != nil {
+	image, err := s.productService.AddProductImage(uint(id), key, file.Filename)
+	if err != nil {
 		// Keep storage and database consistent: drop the orphan object.
 		if delErr := s.uploadService.DeleteFile(c.Request.Context(), key); delErr != nil {
 			s.logger.Error().Err(delErr).Str("key", key).Msg("failed to clean up orphaned upload")
@@ -207,9 +208,11 @@ func (s *Server) uploadProductImage(c *gin.Context) {
 		return
 	}
 
-	utils.CreatedResponse(c, "Image uploaded successfully", map[string]string{
-		"key": key,
-		"url": utils.CDNURL(s.config.CDN.BaseURL, key),
+	utils.CreatedResponse(c, "Image uploaded successfully", dtos.ProductImageResponse{
+		ID:        image.ID,
+		URL:       utils.CDNURL(s.config.CDN.BaseURL, key),
+		AltText:   image.AltText,
+		IsPrimary: image.IsPrimary,
 	})
 }
 

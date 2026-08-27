@@ -8,19 +8,34 @@ import (
 	"gorm.io/gorm"
 )
 
+// Sentinel errors so the HTTP layer can map a cart failure to the right
+// status code without matching on error strings.
+var (
+	ErrCartNotFound      = errors.New("cart not found")
+	ErrCartItemNotFound  = errors.New("cart item not found")
+	ErrProductNotFound   = errors.New("product not found")
+	ErrInsufficientStock = errors.New("insufficient stock")
+)
+
 type CartService struct {
-	db *gorm.DB
+	db         *gorm.DB
+	cdnBaseURL string
 }
 
-func NewCartService(db *gorm.DB) *CartService {
-	return &CartService{db: db}
+func NewCartService(db *gorm.DB, cdnBaseURL string) *CartService {
+	return &CartService{db: db, cdnBaseURL: cdnBaseURL}
 }
 
 func (s *CartService) GetCart(userID uint) (*dtos.CartResponse, error) {
 	var cart models.Cart
-	if err := s.db.Preload("CartItems.Product.Category").
+	if err := s.db.
+		Preload("CartItems.Product.Category").
+		Preload("CartItems.Product.Images").
 		Where("user_id = ?", userID).
 		First(&cart).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrCartNotFound
+		}
 		return nil, err
 	}
 	return s.convertToCartResponse(&cart), nil
@@ -31,11 +46,14 @@ func (s *CartService) AddToCart(userID uint, req *dtos.AddToCartRequest) (*dtos.
 	// Check if product exists
 	var product models.Product
 	if err := s.db.First(&product, req.ProductID).Error; err != nil {
-		return nil, errors.New("product not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrProductNotFound
+		}
+		return nil, err
 	}
 
 	if product.Stock < req.Quantity {
-		return nil, errors.New("insufficient stock")
+		return nil, ErrInsufficientStock
 	}
 
 	// Get or create cart
@@ -56,14 +74,18 @@ func (s *CartService) AddToCart(userID uint, req *dtos.AddToCartRequest) (*dtos.
 			ProductID: req.ProductID,
 			Quantity:  req.Quantity,
 		}
-		s.db.Create(&cartItem)
+		if createErr := s.db.Create(&cartItem).Error; createErr != nil {
+			return nil, createErr
+		}
 	} else {
 		// Update existing cart item
 		cartItem.Quantity += req.Quantity
 		if cartItem.Quantity > product.Stock {
-			return nil, errors.New("insufficient stock")
+			return nil, ErrInsufficientStock
 		}
-		s.db.Save(&cartItem)
+		if saveErr := s.db.Save(&cartItem).Error; saveErr != nil {
+			return nil, saveErr
+		}
 	}
 
 	return s.GetCart(userID)
@@ -74,16 +96,22 @@ func (s *CartService) UpdateCartItem(userID, itemID uint, req *dtos.UpdateCartIt
 	if err := s.db.Joins("JOIN carts ON cart_items.cart_id = carts.id").
 		Where("cart_items.id = ? AND carts.user_id = ?", itemID, userID).
 		First(&cartItem).Error; err != nil {
-		return nil, errors.New("cart item not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrCartItemNotFound
+		}
+		return nil, err
 	}
 
 	var product models.Product
 	if err := s.db.First(&product, cartItem.ProductID).Error; err != nil {
-		return nil, errors.New("product not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrProductNotFound
+		}
+		return nil, err
 	}
 
 	if product.Stock < req.Quantity {
-		return nil, errors.New("insufficient stock")
+		return nil, ErrInsufficientStock
 	}
 
 	cartItem.Quantity = req.Quantity
@@ -95,10 +123,36 @@ func (s *CartService) UpdateCartItem(userID, itemID uint, req *dtos.UpdateCartIt
 }
 
 func (s *CartService) RemoveFromCart(userID, itemID uint) error {
-	return s.db.Where("id = ? AND cart_id IN (?)", itemID,
+	result := s.db.Where("id = ? AND cart_id IN (?)", itemID,
 		s.db.Select("id").Table("carts").
 			Where("user_id = ?", userID)).
-		Delete(&models.CartItem{}).Error
+		Delete(&models.CartItem{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Nothing matched: either the item does not exist or it belongs to
+	// somebody else. Both answer the same way, so an item cannot be probed
+	// from another account.
+	if result.RowsAffected == 0 {
+		return ErrCartItemNotFound
+	}
+
+	return nil
+}
+
+// ClearCart empties the cart without deleting the cart itself.
+func (s *CartService) ClearCart(userID uint) error {
+	var cart models.Cart
+	if err := s.db.Where("user_id = ?", userID).First(&cart).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrCartNotFound
+		}
+		return err
+	}
+
+	return s.db.Where("cart_id = ?", cart.ID).Delete(&models.CartItem{}).Error
 }
 
 func (s *CartService) convertToCartResponse(cart *models.Cart) *dtos.CartResponse {
@@ -109,23 +163,8 @@ func (s *CartService) convertToCartResponse(cart *models.Cart) *dtos.CartRespons
 		subTotal := float64(cart.CartItems[i].Quantity) * cart.CartItems[i].Product.Price
 		total += subTotal
 		cartItems[i] = dtos.CartItemResponse{
-			ID: cart.CartItems[i].ID,
-			Product: dtos.ProductResponse{
-				ID:          cart.CartItems[i].Product.ID,
-				CategoryID:  cart.CartItems[i].Product.CategoryID,
-				Name:        cart.CartItems[i].Product.Name,
-				Description: cart.CartItems[i].Product.Description,
-				Price:       cart.CartItems[i].Product.Price,
-				Stock:       cart.CartItems[i].Product.Stock,
-				SKU:         cart.CartItems[i].Product.SKU,
-				IsActive:    cart.CartItems[i].Product.IsActive,
-				Category: dtos.CategoryResponse{
-					ID:          cart.CartItems[i].Product.Category.ID,
-					Name:        cart.CartItems[i].Product.Category.Name,
-					Description: cart.CartItems[i].Product.Category.Description,
-					IsActive:    cart.CartItems[i].Product.Category.IsActive,
-				},
-			},
+			ID:        cart.CartItems[i].ID,
+			Product:   productToResponse(&cart.CartItems[i].Product, s.cdnBaseURL),
 			Quantity:  cart.CartItems[i].Quantity,
 			Subtotal:  subTotal,
 			CreatedAt: cart.CartItems[i].CreatedAt,

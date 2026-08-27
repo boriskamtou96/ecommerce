@@ -82,7 +82,8 @@ func (s *Server) getProfile(c *gin.Context) {
 
 	profile, err := s.userService.GetProfile(userID)
 	if err != nil {
-		utils.NotFoundResponse(c, "user not found", nil)
+		utils.NotFoundResponse(c, "user not found", err)
+		return
 	}
 
 	utils.SuccessResponse(c, "profile retrieved successfully", profile)

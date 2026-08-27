@@ -184,8 +184,13 @@ func (s *ProductService) DeleteProduct(id uint) error {
 }
 
 // AddProductImage records the storage key (not the public URL) so the CDN
-// host can change without a data migration.
-func (s *ProductService) AddProductImage(productID uint, key, altText string) error {
+// host can change without a data migration. The created row is returned so
+// the caller can hand its id back to the client, which would otherwise have
+// to refetch the product just to be able to delete what it just uploaded.
+func (s *ProductService) AddProductImage(
+	productID uint,
+	key, altText string,
+) (*models.ProductImage, error) {
 	var count int64
 	s.db.Model(&models.ProductImage{}).Where("product_id = ?", productID).Count(&count)
 
@@ -196,7 +201,11 @@ func (s *ProductService) AddProductImage(productID uint, key, altText string) er
 		IsPrimary: count == 0, // First image is primary
 	}
 
-	return s.db.Create(&image).Error
+	if err := s.db.Create(&image).Error; err != nil {
+		return nil, err
+	}
+
+	return &image, nil
 }
 
 func (s *ProductService) GetProductImage(productID, imageID uint) (*models.ProductImage, error) {
@@ -234,11 +243,18 @@ func (s *ProductService) DeleteProductImage(image *models.ProductImage) error {
 }
 
 func (s *ProductService) convertToProductResponse(product *models.Product) dtos.ProductResponse {
+	return productToResponse(product, s.cdnBaseURL)
+}
+
+// productToResponse is shared by every service that embeds a product in
+// its payload (catalogue, cart, orders) so that image URLs are built the
+// same way everywhere.
+func productToResponse(product *models.Product, cdnBaseURL string) dtos.ProductResponse {
 	images := make([]dtos.ProductImageResponse, len(product.Images))
 	for i := range product.Images {
 		images[i] = dtos.ProductImageResponse{
 			ID:        product.Images[i].ID,
-			URL:       utils.CDNURL(s.cdnBaseURL, product.Images[i].URL),
+			URL:       utils.CDNURL(cdnBaseURL, product.Images[i].URL),
 			AltText:   product.Images[i].AltText,
 			IsPrimary: product.Images[i].IsPrimary,
 		}

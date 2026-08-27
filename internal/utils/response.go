@@ -67,6 +67,10 @@ func ForbiddenResponse(c *gin.Context, message string) {
 	ErrorResponse(c, http.StatusForbidden, message, nil)
 }
 
+func ConflictResponse(c *gin.Context, message string, err error) {
+	ErrorResponse(c, http.StatusConflict, message, err)
+}
+
 func NotFoundResponse(c *gin.Context, message string, err error) {
 	ErrorResponse(c, http.StatusNotFound, message, err)
 }
