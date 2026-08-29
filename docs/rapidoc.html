@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>E-Commerce API — Reference</title>
+
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet">
+
+    <!-- Pinned: an unpinned CDN URL means the docs can break on a release
+         nobody asked for. Bump this deliberately. -->
+    <script type="module" src="https://unpkg.com/rapidoc@9.3.8/dist/rapidoc-min.js"></script>
+
+    <style>
+        :root {
+            --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+            --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: var(--font-sans);
+        }
+
+        rapi-doc {
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Header slot ------------------------------------------------- */
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+
+        .brand .mark {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .brand .env {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 7px;
+            border-radius: 999px;
+            border: 1px solid currentColor;
+            opacity: 0.65;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .actions a,
+        .actions button {
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            color: inherit;
+            background: none;
+            border: 0;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            text-decoration: none;
+            opacity: 0.75;
+            transition: opacity 0.15s ease, background-color 0.15s ease;
+        }
+
+        .actions a:hover,
+        .actions button:hover {
+            opacity: 1;
+            background: rgba(127, 145, 180, 0.18);
+        }
+
+        .actions .icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        /* The header slot is cramped on a phone: keep the brand, drop the
+           secondary links rather than letting them wrap. */
+        @media (max-width: 640px) {
+            .brand .env,
+            .actions .label {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<rapi-doc
+        id="doc"
+        spec-url="/docs/doc.json"
+
+        render-style="focused"
+        schema-style="table"
+        default-schema-tab="schema"
+        schema-description-expanded="true"
+        show-method-in-nav-bar="as-colored-block"
+        use-path-in-nav-bar="true"
+        nav-item-spacing="relaxed"
+        sort-tags="true"
+        font-size="default"
+        load-fonts="false"
+        regular-font="Inter, ui-sans-serif, system-ui, sans-serif"
+        mono-font="JetBrains Mono, ui-monospace, monospace"
+
+        show-header="true"
+        show-info="true"
+        show-components="true"
+        allow-authentication="true"
+        allow-server-selection="true"
+        allow-spec-file-download="true"
+        allow-api-list-style-selection="false"
+        persist-auth="true"
+        fill-request-fields-with-example="true"
+>
+    <div slot="header" class="brand">
+        <span class="mark">🛒</span>
+        <span>E-Commerce API</span>
+        <span class="env" id="env">localhost</span>
+
+        <span class="actions">
+            <button id="theme" type="button" title="Switch between light and dark">
+                <span class="icon" id="theme-icon">◐</span>
+                <span class="label">Theme</span>
+            </button>
+            <a href="/docs/index.html" title="Open the same spec in Swagger UI">
+                <span class="label">Swagger UI</span>
+                <span class="icon" aria-hidden="true">↗</span>
+            </a>
+        </span>
+    </div>
+</rapi-doc>
+
+<script>
+    (function () {
+        const doc = document.getElementById('doc');
+
+        // Palettes are applied as a set: RapiDoc's colour attributes win over
+        // its own theme, so switching theme means rewriting all of them.
+        const THEMES = {
+            dark: {
+                theme: 'dark',
+                'bg-color': '#0f1115',
+                'text-color': '#e6e8ee',
+                'header-color': '#161922',
+                'primary-color': '#6aa8ff',
+                'nav-bg-color': '#161922',
+                'nav-text-color': '#c3c8d4',
+                'nav-hover-bg-color': '#222736',
+                'nav-hover-text-color': '#ffffff',
+                'nav-accent-color': '#6aa8ff',
+            },
+            light: {
+                theme: 'light',
+                'bg-color': '#ffffff',
+                'text-color': '#1a1d23',
+                'header-color': '#0f1115',
+                'primary-color': '#1d4ed8',
+                'nav-bg-color': '#f7f8fa',
+                'nav-text-color': '#41485a',
+                'nav-hover-bg-color': '#e8ebf0',
+                'nav-hover-text-color': '#0f1115',
+                'nav-accent-color': '#1d4ed8',
+            },
+        };
+
+        function applyTheme(name) {
+            const palette = THEMES[name] || THEMES.dark;
+            for (const [attr, value] of Object.entries(palette)) {
+                doc.setAttribute(attr, value);
+            }
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = name === 'dark' ? '◐' : '◑';
+            try {
+                localStorage.setItem('rapidoc-theme', name);
+            } catch (e) {
+                /* private mode: the choice just does not survive a reload */
+            }
+        }
+
+        let stored = null;
+        try {
+            stored = localStorage.getItem('rapidoc-theme');
+        } catch (e) { /* ignore */ }
+
+        const prefersLight = window.matchMedia
+            && window.matchMedia('(prefers-color-scheme: light)').matches;
+
+        applyTheme(stored || (prefersLight ? 'light' : 'dark'));
+
+        document.getElementById('theme').addEventListener('click', function () {
+            applyTheme(doc.getAttribute('theme') === 'dark' ? 'light' : 'dark');
+        });
+
+        // Follow whatever host the docs are served from, so the same page
+        // works against localhost, staging and production without an edit.
+        const base = window.location.origin + '/api/v1';
+        doc.setAttribute('server-url', base);
+        doc.setAttribute('default-api-server', base);
+
+        const env = document.getElementById('env');
+        if (env) env.textContent = window.location.hostname || 'localhost';
+    })();
+</script>
+
+</body>
+</html>

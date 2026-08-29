@@ -18,6 +18,17 @@ import (
 // client supplied identifier. A user can therefore never reach somebody
 // else's cart.
 
+// getCart godoc
+//
+//	@Summary			Get my cart
+//	@Description	A user who has never added anything has no cart row yet; that case answers 200 with an empty cart rather than 404.
+//	@Tags				cart
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Success			200	{object}	utils.Response{data=dtos.CartResponse}
+//	@Failure			401	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/cart/ [get]
 func (s *Server) getCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -41,6 +52,21 @@ func (s *Server) getCart(c *gin.Context) {
 	utils.SuccessResponse(c, "cart retrieved successfully", cart)
 }
 
+// addToCart godoc
+//
+//	@Summary			Add an item to my cart
+//	@Description	Adding a product already in the cart increases its quantity instead of creating a second line. Returns the whole cart.
+//	@Tags				cart
+//	@Accept			json
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				request	body	dtos.AddToCartRequest	true	"Product and quantity"
+//	@Success			200	{object}	utils.Response{data=dtos.CartResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			404	{object}	utils.Response		"Unknown product"
+//	@Failure			409	{object}	utils.Response		"Requested quantity exceeds the stock on hand"
+//	@Router			/cart/items [post]
 func (s *Server) addToCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -59,6 +85,22 @@ func (s *Server) addToCart(c *gin.Context) {
 	utils.SuccessResponse(c, "item added to cart successfully", cart)
 }
 
+// updateCartItem godoc
+//
+//	@Summary			Set the quantity of a cart item
+//	@Description	Replaces the quantity; it does not add to it. Items belonging to another user answer 404.
+//	@Tags				cart
+//	@Accept			json
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				itemId	path	int	true	"Cart item ID"
+//	@Param				request	body	dtos.UpdateCartItemRequest	true	"New quantity"
+//	@Success			200	{object}	utils.Response{data=dtos.CartResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			404	{object}	utils.Response
+//	@Failure			409	{object}	utils.Response		"Requested quantity exceeds the stock on hand"
+//	@Router			/cart/items/{itemId} [put]
 func (s *Server) updateCartItem(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -82,6 +124,19 @@ func (s *Server) updateCartItem(c *gin.Context) {
 	utils.SuccessResponse(c, "cart item updated successfully", cart)
 }
 
+// removeFromCart godoc
+//
+//	@Summary			Remove an item from my cart
+//	@Description	Returns the updated cart, or a null payload if the cart no longer exists.
+//	@Tags				cart
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				itemId	path	int	true	"Cart item ID"
+//	@Success			200	{object}	utils.Response{data=dtos.CartResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			404	{object}	utils.Response
+//	@Router			/cart/items/{itemId} [delete]
 func (s *Server) removeFromCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -108,6 +163,17 @@ func (s *Server) removeFromCart(c *gin.Context) {
 	utils.SuccessResponse(c, "item removed from cart successfully", cart)
 }
 
+// clearCart godoc
+//
+//	@Summary			Empty my cart
+//	@Description	Idempotent: emptying an already empty cart still answers 200, so a retry after a network error is harmless.
+//	@Tags				cart
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Success			200	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/cart/ [delete]
 func (s *Server) clearCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 

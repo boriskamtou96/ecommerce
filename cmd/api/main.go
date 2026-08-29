@@ -25,6 +25,23 @@ const (
 	cancelTimeout  = 15
 )
 
+// @title			E-commerce API
+// @version		1.0
+// @description	A modern e-commerce API built with Go, Gin and GORM.
+// @termsOfService	http://swagger.io/terms/
+//
+// @contact.name		Boris KAMTOU
+// @contact.url		http://linkedin.com/in/boriskamtou
+// @contact.email	boriskamtou@gmail.com
+//
+// @host			localhost:8080
+// @BasePath		/api/v1
+// @schemes		http https
+//
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
+// @description				Paste the accessToken returned by /auth/login, prefixed with "Bearer ".
 func main() {
 	log := logger.New()
 

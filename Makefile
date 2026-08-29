@@ -9,6 +9,7 @@ help:
 	@echo "  run                Run the application"
 	@echo "  lint               Run golangci-lint on the codebase"
 	@echo "  format             Format code an re-arrange imports"
+	@echo "  swagger            Regenerate the OpenAPI spec in docs/ from the handler annotations"
 
 include .env
 export $(shell test -f .env && sed 's/=.*//' .env)
@@ -50,6 +51,10 @@ format:
 	@gofmt -s -w .
 	@goimports -w .
 
+.PHONY: swagger
+swagger:
+	@swag init -g cmd/api/main.go -o docs --parseDependency --parseInternal --exclude .git,docs,docker,db
+
 .PHONY: up
 up:
 	docker compose --env-file .env -f docker/docker-compose.yml up -d
@@ -57,4 +62,9 @@ up:
 .PHONY: down
 down:
 	docker compose --env-file .env -f docker/docker-compose.yml down
+
+.PHONY: docs-generate
+docs-generate:
+	mkdir -p docs
+	swag init -g cmd/api/main.go -o docs --parseDependency --parseInternal --exclude .git,docs,docker,db
 

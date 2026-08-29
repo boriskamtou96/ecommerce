@@ -1,0 +1,1276 @@
+basePath: /api/v1
+definitions:
+  ecommerce_internal_dtos.AddToCartRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  ecommerce_internal_dtos.AuthResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+      user:
+        $ref: '#/definitions/ecommerce_internal_dtos.UserResponse'
+    type: object
+  ecommerce_internal_dtos.CartItemResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      product:
+        $ref: '#/definitions/ecommerce_internal_dtos.ProductResponse'
+      quantity:
+        type: integer
+      subtotal:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  ecommerce_internal_dtos.CartResponse:
+    properties:
+      cart_items:
+        items:
+          $ref: '#/definitions/ecommerce_internal_dtos.CartItemResponse'
+        type: array
+      created_at:
+        type: string
+      id:
+        type: integer
+      total:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  ecommerce_internal_dtos.CategoryResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+    type: object
+  ecommerce_internal_dtos.CreateCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  ecommerce_internal_dtos.CreateProductRequest:
+    properties:
+      category_id:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      sku:
+        type: string
+      stock:
+        minimum: 0
+        type: integer
+    required:
+    - category_id
+    - name
+    - price
+    - sku
+    type: object
+  ecommerce_internal_dtos.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  ecommerce_internal_dtos.OrderItemResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      price:
+        type: number
+      product:
+        $ref: '#/definitions/ecommerce_internal_dtos.ProductResponse'
+      quantity:
+        type: integer
+    type: object
+  ecommerce_internal_dtos.OrderResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_items:
+        items:
+          $ref: '#/definitions/ecommerce_internal_dtos.OrderItemResponse'
+        type: array
+      status:
+        type: string
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  ecommerce_internal_dtos.ProductImageResponse:
+    properties:
+      alt_text:
+        type: string
+      id:
+        type: integer
+      is_primary:
+        type: boolean
+      url:
+        type: string
+    type: object
+  ecommerce_internal_dtos.ProductResponse:
+    properties:
+      category:
+        $ref: '#/definitions/ecommerce_internal_dtos.CategoryResponse'
+      description:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          $ref: '#/definitions/ecommerce_internal_dtos.ProductImageResponse'
+        type: array
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      sku:
+        type: string
+      stock:
+        type: integer
+    type: object
+  ecommerce_internal_dtos.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  ecommerce_internal_dtos.RegisterRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  ecommerce_internal_dtos.UpdateCartItemRequest:
+    properties:
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - quantity
+    type: object
+  ecommerce_internal_dtos.UpdateCategoryRequest:
+    properties:
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  ecommerce_internal_dtos.UpdateProductRequest:
+    properties:
+      category_id:
+        type: integer
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        minimum: 0
+        type: integer
+    required:
+    - category_id
+    - name
+    - price
+    type: object
+  ecommerce_internal_dtos.UpdateProfileRequest:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+    required:
+    - first_name
+    - last_name
+    type: object
+  ecommerce_internal_dtos.UserResponse:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+    type: object
+  ecommerce_internal_utils.PaginatedResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/ecommerce_internal_utils.PaginationMeta'
+      success:
+        type: boolean
+    type: object
+  ecommerce_internal_utils.PaginationMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  ecommerce_internal_utils.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: boriskamtou@gmail.com
+    name: Boris KAMTOU
+    url: http://linkedin.com/in/boriskamtou
+  description: A modern e-commerce API built with Go, Gin and GORM.
+  termsOfService: http://swagger.io/terms/
+  title: E-commerce API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges credentials for an access token and a refresh token.
+      parameters:
+      - description: Credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.AuthResponse'
+              type: object
+        "400":
+          description: Unknown email or wrong password
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: Log in
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revokes the refresh token. The access token stays valid until it
+        expires on its own.
+      parameters:
+      - description: Refresh token to revoke
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: Log out
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Issues a new token pair from a valid refresh token.
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.AuthResponse'
+              type: object
+        "400":
+          description: Expired, revoked or unknown refresh token
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: Refresh the access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a customer account and returns it with a fresh token pair.
+      parameters:
+      - description: 'Account details (password: 8 characters minimum)'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.AuthResponse'
+              type: object
+        "400":
+          description: Malformed payload, or the email is already taken
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: Register a new account
+      tags:
+      - auth
+  /cart/:
+    delete:
+      description: 'Idempotent: emptying an already empty cart still answers 200,
+        so a retry after a network error is harmless.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Empty my cart
+      tags:
+      - cart
+    get:
+      description: A user who has never added anything has no cart row yet; that case
+        answers 200 with an empty cart rather than 404.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.CartResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get my cart
+      tags:
+      - cart
+  /cart/items:
+    post:
+      consumes:
+      - application/json
+      description: Adding a product already in the cart increases its quantity instead
+        of creating a second line. Returns the whole cart.
+      parameters:
+      - description: Product and quantity
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.AddToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.CartResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Unknown product
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "409":
+          description: Requested quantity exceeds the stock on hand
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Add an item to my cart
+      tags:
+      - cart
+  /cart/items/{itemId}:
+    delete:
+      description: Returns the updated cart, or a null payload if the cart no longer
+        exists.
+      parameters:
+      - description: Cart item ID
+        in: path
+        name: itemId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.CartResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove an item from my cart
+      tags:
+      - cart
+    put:
+      consumes:
+      - application/json
+      description: Replaces the quantity; it does not add to it. Items belonging to
+        another user answer 404.
+      parameters:
+      - description: Cart item ID
+        in: path
+        name: itemId
+        required: true
+        type: integer
+      - description: New quantity
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.UpdateCartItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.CartResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "409":
+          description: Requested quantity exceeds the stock on hand
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Set the quantity of a cart item
+      tags:
+      - cart
+  /categories:
+    get:
+      description: Public endpoint. Inactive categories are never returned.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/ecommerce_internal_dtos.CategoryResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: List active categories
+      tags:
+      - categories
+  /categories/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.CategoryResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Admin role required
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a category
+      tags:
+      - categories
+  /categories/{id}:
+    delete:
+      description: 'Soft delete: the row is kept with a deleted_at timestamp.'
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a category
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New values
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.CategoryResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a category
+      tags:
+      - categories
+  /orders/:
+    get:
+      description: Paginated, newest first, restricted to the authenticated user.
+        A user with no orders gets an empty list, not a 404.
+      parameters:
+      - default: 1
+        description: Page number, 1 based
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/ecommerce_internal_dtos.OrderResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: List my orders
+      tags:
+      - orders
+    post:
+      description: 'Takes no payload: the authenticated user''s cart is the input.
+        In one transaction the stock of every product is decremented, a pending order
+        is created and the cart is emptied. Any failure rolls the whole thing back,
+        so a 409 leaves every stock untouched.'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.OrderResponse'
+              type: object
+        "400":
+          description: Cart is empty or does not exist
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "409":
+          description: A product ran out of stock before the order could be placed
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 'Check out: turn my cart into an order'
+      tags:
+      - orders
+  /orders/{id}:
+    get:
+      description: 'The ownership check is part of the query, so an order belonging
+        to somebody else answers 404 rather than 403: order IDs cannot be probed.'
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.OrderResponse'
+              type: object
+        "400":
+          description: Non numeric id
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Unknown order, or not yours
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get one of my orders
+      tags:
+      - orders
+  /products:
+    get:
+      description: Public and paginated. An out of range page returns an empty list,
+        not an error.
+      parameters:
+      - default: 1
+        description: Page number, 1 based
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/ecommerce_internal_dtos.ProductResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: List active products
+      tags:
+      - products
+  /products/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Product to create (SKU must be unique)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.ProductResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a product
+      tags:
+      - products
+  /products/{id}:
+    delete:
+      description: Soft delete. Existing order items keep pointing at the product.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      description: Public. Includes the category and every image of the product.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.ProductResponse'
+              type: object
+        "400":
+          description: Non numeric id
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      summary: Get one product
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: 'Full replacement: every field of the request is written, so send
+        the current values for the ones you do not change.'
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New values
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.ProductResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a product
+      tags:
+      - products
+  /products/{id}/images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Multipart upload. The object is stored by the configured provider
+        (local or S3) and the returned URL is already prefixed with the CDN base URL.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.ProductImageResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "413":
+          description: File larger than UPLOAD_MAX_FILE_SIZE
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Upload a product image
+      tags:
+      - products
+  /products/{id}/images/{imageId}:
+    delete:
+      description: Removes the database row first. A storage failure afterwards is
+        logged, not returned, so the call stays successful.
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Image ID
+        in: path
+        name: imageId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a product image
+      tags:
+      - products
+  /users/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get my profile
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates the caller's own profile. Email and role cannot be changed
+        here.
+      parameters:
+      - description: New profile values
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ecommerce_internal_dtos.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/ecommerce_internal_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecommerce_internal_dtos.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ecommerce_internal_utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update my profile
+      tags:
+      - users
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Paste the accessToken returned by /auth/login, prefixed with "Bearer
+      ".
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

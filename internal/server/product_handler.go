@@ -14,6 +14,20 @@ import (
 
 // ==================== CATEGORY HANDLERS ====================
 
+// createCategory godoc
+//
+//	@Summary			Create a category
+//	@Tags				categories
+//	@Accept			json
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				request	body	dtos.CreateCategoryRequest	true	"Category to create"
+//	@Success			201	{object}	utils.Response{data=dtos.CategoryResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response		"Admin role required"
+//	@Failure			500	{object}	utils.Response
+//	@Router			/categories/ [post]
 func (s *Server) createCategory(c *gin.Context) {
 	var req dtos.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,6 +44,15 @@ func (s *Server) createCategory(c *gin.Context) {
 	utils.CreatedResponse(c, "category created successfully", category)
 }
 
+// getCategories godoc
+//
+//	@Summary			List active categories
+//	@Description	Public endpoint. Inactive categories are never returned.
+//	@Tags				categories
+//	@Produce			json
+//	@Success			200	{object}	utils.Response{data=[]dtos.CategoryResponse}
+//	@Failure			500	{object}	utils.Response
+//	@Router			/categories [get]
 func (s *Server) getCategories(c *gin.Context) {
 	categories, err := s.productService.GetCategories()
 	if err != nil {
@@ -40,6 +63,21 @@ func (s *Server) getCategories(c *gin.Context) {
 	utils.SuccessResponse(c, "categories fetched successfully", categories)
 }
 
+// updateCategory godoc
+//
+//	@Summary			Update a category
+//	@Tags				categories
+//	@Accept			json
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				id	path	int	true	"Category ID"
+//	@Param				request	body	dtos.UpdateCategoryRequest	true	"New values"
+//	@Success			200	{object}	utils.Response{data=dtos.CategoryResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/categories/{id} [put]
 func (s *Server) updateCategory(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -63,6 +101,20 @@ func (s *Server) updateCategory(c *gin.Context) {
 	utils.SuccessResponse(c, "category updated successfully", category)
 }
 
+// deleteCategory godoc
+//
+//	@Summary			Delete a category
+//	@Description	Soft delete: the row is kept with a deleted_at timestamp.
+//	@Tags				categories
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				id	path	int	true	"Category ID"
+//	@Success			200	{object}	utils.Response
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/categories/{id} [delete]
 func (s *Server) deleteCategory(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -81,6 +133,20 @@ func (s *Server) deleteCategory(c *gin.Context) {
 
 // ==================== PRODUCT HANDLERS ====================
 
+// createProduct godoc
+//
+//	@Summary			Create a product
+//	@Tags				products
+//	@Accept			json
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				request	body	dtos.CreateProductRequest	true	"Product to create (SKU must be unique)"
+//	@Success			201	{object}	utils.Response{data=dtos.ProductResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/products/ [post]
 func (s *Server) createProduct(c *gin.Context) {
 	var req dtos.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -97,6 +163,17 @@ func (s *Server) createProduct(c *gin.Context) {
 	utils.CreatedResponse(c, "product created successfully", product)
 }
 
+// getProducts godoc
+//
+//	@Summary			List active products
+//	@Description	Public and paginated. An out of range page returns an empty list, not an error.
+//	@Tags				products
+//	@Produce			json
+//	@Param				page	query	int	false	"Page number, 1 based"	default(1)
+//	@Param				limit	query	int	false	"Items per page"	default(10)
+//	@Success			200	{object}	utils.PaginatedResponse{data=[]dtos.ProductResponse}
+//	@Failure			500	{object}	utils.Response
+//	@Router			/products [get]
 func (s *Server) getProducts(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -110,6 +187,17 @@ func (s *Server) getProducts(c *gin.Context) {
 	utils.PaginatedSuccessResponse(c, "products fetched successfully", products, meta)
 }
 
+// getProduct godoc
+//
+//	@Summary			Get one product
+//	@Description	Public. Includes the category and every image of the product.
+//	@Tags				products
+//	@Produce			json
+//	@Param				id	path	int	true	"Product ID"
+//	@Success			200	{object}	utils.Response{data=dtos.ProductResponse}
+//	@Failure			400	{object}	utils.Response		"Non numeric id"
+//	@Failure			404	{object}	utils.Response
+//	@Router			/products/{id} [get]
 func (s *Server) getProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -127,6 +215,22 @@ func (s *Server) getProduct(c *gin.Context) {
 	utils.SuccessResponse(c, "product fetched successfully", product)
 }
 
+// updateProduct godoc
+//
+//	@Summary			Update a product
+//	@Description	Full replacement: every field of the request is written, so send the current values for the ones you do not change.
+//	@Tags				products
+//	@Accept			json
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				id	path	int	true	"Product ID"
+//	@Param				request	body	dtos.UpdateProductRequest	true	"New values"
+//	@Success			200	{object}	utils.Response{data=dtos.ProductResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/products/{id} [put]
 func (s *Server) updateProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -150,6 +254,20 @@ func (s *Server) updateProduct(c *gin.Context) {
 	utils.SuccessResponse(c, "product updated successfully", product)
 }
 
+// deleteProduct godoc
+//
+//	@Summary			Delete a product
+//	@Description	Soft delete. Existing order items keep pointing at the product.
+//	@Tags				products
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				id	path	int	true	"Product ID"
+//	@Success			200	{object}	utils.Response
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/products/{id} [delete]
 func (s *Server) deleteProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -166,6 +284,24 @@ func (s *Server) deleteProduct(c *gin.Context) {
 	utils.SuccessResponse(c, "product deleted successfully", nil)
 }
 
+// uploadProductImage godoc
+//
+//	@Summary			Upload a product image
+//	@Description	Multipart upload. The object is stored by the configured provider (local or S3) and the returned URL is already prefixed with the CDN base URL.
+//	@Tags				products
+//	@Accept			multipart/form-data
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				id	path	int	true	"Product ID"
+//	@Param				image	formData	file	true	"Image file"
+//	@Success			201	{object}	utils.Response{data=dtos.ProductImageResponse}
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			404	{object}	utils.Response
+//	@Failure			413	{object}	utils.Response		"File larger than UPLOAD_MAX_FILE_SIZE"
+//	@Failure			500	{object}	utils.Response
+//	@Router			/products/{id}/images [post]
 func (s *Server) uploadProductImage(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -216,6 +352,22 @@ func (s *Server) uploadProductImage(c *gin.Context) {
 	})
 }
 
+// deleteProductImage godoc
+//
+//	@Summary			Delete a product image
+//	@Description	Removes the database row first. A storage failure afterwards is logged, not returned, so the call stays successful.
+//	@Tags				products
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Param				id	path	int	true	"Product ID"
+//	@Param				imageId	path	int	true	"Image ID"
+//	@Success			200	{object}	utils.Response
+//	@Failure			400	{object}	utils.Response
+//	@Failure			401	{object}	utils.Response
+//	@Failure			403	{object}	utils.Response
+//	@Failure			404	{object}	utils.Response
+//	@Failure			500	{object}	utils.Response
+//	@Router			/products/{id}/images/{imageId} [delete]
 func (s *Server) deleteProductImage(c *gin.Context) {
 	productID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
