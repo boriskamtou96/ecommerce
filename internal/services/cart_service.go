@@ -67,7 +67,9 @@ func (s *CartService) AddToCart(userID uint, req *dtos.AddToCartRequest) (*dtos.
 
 	// Check if item already exists in cart
 	var cartItem models.CartItem
-	if err := s.db.Where("cart_id = ? AND product_id = ?", cart.ID, req.ProductID).First(&cartItem).Error; err != nil {
+	if err := s.db.
+		Where("cart_id = ? AND product_id = ?", cart.ID, req.ProductID).
+		First(&cartItem).Error; err != nil {
 		// Create new cart item
 		cartItem = models.CartItem{
 			CartID:    cart.ID,
@@ -180,5 +182,4 @@ func (s *CartService) convertToCartResponse(cart *models.Cart) *dtos.CartRespons
 		CreatedAt: cart.CreatedAt,
 		UpdatedAt: cart.UpdatedAt,
 	}
-
 }
