@@ -4,6 +4,7 @@ import (
 	"ecommerce/internal/dtos"
 	"ecommerce/internal/utils"
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -174,4 +175,32 @@ func (s *Server) updateProfile(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, "profile updated successfully", profile)
+}
+
+// getUser godoc
+//
+//	@Summary			Get a user by ID
+//	@Tags				users
+//	@Produce			json
+//	@Security		BearerAuth
+//	@Success			200	{object}	utils.Response{data=dtos.UserResponse}
+//	@Failure			401	{object}	utils.Response
+//	@Failure			404	{object}	utils.Response
+//	@Router			/users/{id} [get]
+func (s *Server) getUser(c *gin.Context) {
+	id := c.Param("id")
+
+	userID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		utils.BadRequestResponse(c, "invalid user ID", err)
+		return
+	}
+
+	user, err := s.authService.GetUser(uint(userID))
+	if err != nil {
+		utils.NotFoundResponse(c, "user not found", err)
+		return
+	}
+
+	utils.SuccessResponse(c, "user retrieved successfully", user)
 }

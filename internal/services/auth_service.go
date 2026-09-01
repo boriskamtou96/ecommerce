@@ -107,7 +107,7 @@ func (s *AuthService) generateAuthResponse(user *models.User) (*dtos.AuthRespons
 	if err != nil {
 		return nil, err
 	}
- 
+
 	refreshTokenModel := models.RefreshToken{
 		UserID:    user.ID,
 		Token:     refreshToken,
@@ -128,5 +128,21 @@ func (s *AuthService) generateAuthResponse(user *models.User) (*dtos.AuthRespons
 		},
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (s *AuthService) GetUser(id uint) (*dtos.UserResponse, error) {
+	var user models.User
+	if err := s.db.First(&user, id).Error; err != nil {
+		return nil, errors.New("user not found")
+	}
+	return &dtos.UserResponse{
+		ID:        user.ID,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
+		Role:      string(user.Role),
+		IsActive:  user.IsActive,
 	}, nil
 }
