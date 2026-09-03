@@ -5,10 +5,11 @@ import (
 	"ecommerce/internal/dtos"
 	"ecommerce/internal/events"
 	"ecommerce/internal/models"
+	"ecommerce/internal/notifications"
 	"ecommerce/internal/utils"
 	"errors"
+	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -120,12 +121,9 @@ func (s *AuthService) generateAuthResponse(user *models.User) (*dtos.AuthRespons
 
 	s.db.Create(&refreshTokenModel)
 
-	err = s.eventPublisher.Publish("UserLoggedIn", user, map[string]string{
-		"user_id": strconv.FormatUint(uint64(user.ID), 10),
-		"email":   user.Email,
-	})
+	err = s.eventPublisher.Publish(notifications.UserLoggedIn, user, map[string]string{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to publish user login event: %w", err)
 	}
 
 	return &dtos.AuthResponse{
