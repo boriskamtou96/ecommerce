@@ -43,6 +43,7 @@ type AWSConfig struct {
 	SecretAccessKey string
 	S3Bucket        string
 	S3Endpoint      string
+	SQSEndpoint     string
 	EventQueueName  string
 }
 
@@ -92,6 +93,7 @@ func LoadConfig() (*Config, error) {
 			SecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", ""),
 			S3Bucket:        getEnv("AWS_S3_BUCKET_NAME", ""),
 			S3Endpoint:      getEnv("AWS_S3_ENDPOINT", ""),
+			SQSEndpoint:     getEnv("AWS_SQS_ENDPOINT", getEnv("AWS_S3_ENDPOINT", "")),
 			EventQueueName:  getEnv("AWS_EVENT_QUEUE_NAME", ""),
 		},
 		Upload: UploadConfig{

@@ -3,24 +3,28 @@ package services
 import (
 	"ecommerce/internal/config"
 	"ecommerce/internal/dtos"
+	"ecommerce/internal/events"
 	"ecommerce/internal/models"
 	"ecommerce/internal/utils"
 	"errors"
 	"log"
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type AuthService struct {
-	db     *gorm.DB
-	config *config.Config
+	db             *gorm.DB
+	config         *config.Config
+	eventPublisher events.Publisher
 }
 
-func NewAuthService(db *gorm.DB, config *config.Config) *AuthService {
+func NewAuthService(db *gorm.DB, config *config.Config, eventPublisher events.Publisher) *AuthService {
 	return &AuthService{
-		db:     db,
-		config: config,
+		db:             db,
+		config:         config,
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -115,6 +119,14 @@ func (s *AuthService) generateAuthResponse(user *models.User) (*dtos.AuthRespons
 	}
 
 	s.db.Create(&refreshTokenModel)
+
+	err = s.eventPublisher.Publish("UserLoggedIn", user, map[string]string{
+		"user_id": strconv.FormatUint(uint64(user.ID), 10),
+		"email":   user.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &dtos.AuthResponse{
 		User: dtos.UserResponse{

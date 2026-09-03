@@ -4,6 +4,7 @@ import (
 	"context"
 	"ecommerce/internal/config"
 	"ecommerce/internal/database"
+	"ecommerce/internal/events"
 	"ecommerce/internal/interfaces"
 	"ecommerce/internal/logger"
 	"ecommerce/internal/providers"
@@ -64,7 +65,14 @@ func main() {
 
 	gin.SetMode(cfg.Server.GinMode)
 
-	authService := services.NewAuthService(db, cfg)
+	ctx := context.Background()
+	eventPublisher, err := events.NewEventPublisher(ctx, &cfg.AWS)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to create event publisher")
+		return
+	}
+
+	authService := services.NewAuthService(db, cfg, eventPublisher)
 	productService := services.NewProductService(db, cfg.CDN.BaseURL)
 	userService := services.NewUserService(db)
 	cartService := services.NewCartService(db, cfg.CDN.BaseURL)
