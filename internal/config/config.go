@@ -16,7 +16,17 @@ type Config struct {
 	AWS      AWSConfig
 	Upload   UploadConfig
 	CDN      CDNConfig
+	SMTP     SMTPConfig
 }
+
+type SMTPConfig struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+}
+
 type ServerConfig struct {
 	Port    string
 	GinMode string
@@ -68,6 +78,7 @@ func LoadConfig() (*Config, error) {
 	jwtRefreshTokenExpiresIn, _ := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRES_IN", "168h"))
 
 	maxFileSize, _ := strconv.ParseInt(getEnv("MAX_UPLOAD_SIZE", "10485760"), 10, 64)
+	smtpPort, _ := strconv.Atoi(getEnv("SMTP_PORT", "1025"))
 
 	config := &Config{
 		Server: ServerConfig{
@@ -103,6 +114,13 @@ func LoadConfig() (*Config, error) {
 		},
 		CDN: CDNConfig{
 			BaseURL: strings.TrimRight(getEnv("CDN_BASE_URL", "http://localhost:8081/uploads"), "/"),
+		},
+		SMTP: SMTPConfig{
+			Host:     getEnv("SMTP_HOST", "localhost"),
+			Port:     smtpPort,
+			Username: getEnv("SMTP_USERNAME", ""),
+			Password: getEnv("SMTP_PASSWORD", ""),
+			From:     getEnv("SMTP_FROM", "noreply@shop.com"),
 		},
 	}
 	return config, nil
